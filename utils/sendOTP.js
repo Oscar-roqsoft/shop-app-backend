@@ -1,7 +1,7 @@
 const otpGenerator = require('otp-generator');
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
-const redisClient = require('../db/redis');
+// const redisClient = require('../db/redis');
 const { ttl } = require('./constants');
 const NodeCache = require("node-cache");
 

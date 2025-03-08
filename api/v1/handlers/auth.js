@@ -4,7 +4,7 @@ const { StatusCodes } = require('http-status-codes');
 // const { BadRequestError, UnauthenticatedError } = require('../../../errors/index');
 const sendOTP = require('../../../utils/sendOTP');
 const jwt = require("jsonwebtoken");
-const redisClient = require('../../../db/redis');
+// const redisClient = require('../../../db/redis');
 const NodeCache = require("node-cache");
 
 
