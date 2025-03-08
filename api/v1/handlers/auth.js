@@ -5,6 +5,10 @@ const { StatusCodes } = require('http-status-codes');
 const sendOTP = require('../../../utils/sendOTP');
 const jwt = require("jsonwebtoken");
 const redisClient = require('../../../db/redis');
+const NodeCache = require("node-cache");
+
+
+const cache = new NodeCache();
 
 // Register
 const register = async(req, res,next) => {
@@ -160,10 +164,11 @@ const verificationEmailLink = async(req,res)=>{
   
   try {
       
-      const storedToken = await redisClient.get(`verify:${email}`);
+      // const storedCode = await redisClient.get(`verify:${email}`);
+      const storedCode = cache.get(email);
     
 
-    if (!storedToken || storedToken !== code) {
+    if (!storedCode || storedCode !== code) {
       return res.status(400).json({ message: 'Invalid or expired verification link pp'});
     }
 
@@ -180,7 +185,7 @@ const verificationEmailLink = async(req,res)=>{
     await user.save();
 
     // Remove token from Redis after verification
-    await redisClient.del(`verify:${email}`);
+    // await redisClient.del(`verify:${email}`);
 
     // res.json({ message: 'Email verified successfully. You can now log in.' });
 

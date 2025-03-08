@@ -3,6 +3,10 @@ const nodemailer = require('nodemailer');
 const twilio = require('twilio');
 const redisClient = require('../db/redis');
 const { ttl } = require('./constants');
+const NodeCache = require("node-cache");
+
+
+const cache = new NodeCache();
 
 
 // Twilio and Nodemailer setup
@@ -20,7 +24,8 @@ const sendOTP = async (user,token) => {
 
   // Store OTP in Redis with email as key
     // Store token in Redis with expiration
-    await redisClient.setEx(`verify:${user.email}`, 600, otp);
+    // await redisClient.setEx(`verify:${user.email}`, 600, otp);
+    cache.set(user.email, otp.toString(), 600);
 
     const verificationLink = `${process.env.APP_URL}/verify-email?codeInfo=${otp}/${user.email}`;
 
