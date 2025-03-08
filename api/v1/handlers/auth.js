@@ -7,7 +7,6 @@ const jwt = require("jsonwebtoken");
 // const redisClient = require('../../../db/redis');
 const NodeCache = require("node-cache");
 
-
 const cache = new NodeCache();
 
 // Register
