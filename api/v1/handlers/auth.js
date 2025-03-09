@@ -1,20 +1,20 @@
 
 const User = require('../models/user');
+const UserCode = require('../models/resetPasswordCode');
 const { StatusCodes } = require('http-status-codes');
-// const { BadRequestError, UnauthenticatedError } = require('../../../errors/index');
+const { BadRequestError,UnauthenticatedError } = require('../../../errors');
 const sendOTP = require('../../../utils/sendOTP');
 const jwt = require("jsonwebtoken");
+const cache = require('../../../db/cache');
 // const redisClient = require('../../../db/redis');
-const NodeCache = require("node-cache");
 
-const cache = new NodeCache();
 
 // Register
 const register = async(req, res,next) => {
    
   try{
 
-  const { name, email, password, role, phoneNumber, country} = req.body;
+  const { name, email, password, role, country} = req.body;
   // const user = await User.create({ ...req.body })
 
   const checkUsername = await User.findOne({
@@ -38,35 +38,28 @@ const register = async(req, res,next) => {
      email,
      password,
      role,
-     phoneNumber,
      country,
+     isVerified,
    });
 
 
    const user = await User.findOne({
     name: req.body.name,
+
   });
 
 const accessToken = user.createJWT()
-
-
-console.log(accessToken)
   
    const newUser = {
      name,
      email,
-     phoneNumber,
      country,
+     isVerified,
+     role
    }
-
-  
-
-   if(accessToken){
 
        // Send OTP
-      await sendOTP(user,accessToken);
-      
-   }
+      await sendOTP(user);
 
 
     // Return null data since isVerified is false
@@ -78,9 +71,8 @@ console.log(accessToken)
     res.status(StatusCodes.CREATED).json({
       success:true,
       message: 'User created. Please verify OTP sent to your email.',
-      data: responseData,
+      data: {accessToken,...newUser},
     });
-
 
   }
 
@@ -91,6 +83,7 @@ console.log(accessToken)
   }
 
 };
+
 
 
 // Login
@@ -140,7 +133,7 @@ const login = async (req, res) => {
     res.status(StatusCodes.CREATED).json({
       success:true,
       message: !req.body.isVerified ? 'Please verify OTP sent to your email.': 'logged in successfully',
-      data: responseData,
+      data: {accessToken,...newUser},
     });
 
   }catch(e){
@@ -149,6 +142,7 @@ const login = async (req, res) => {
 
   }
 };
+
 
 
 const verificationEmailLink = async(req,res)=>{
@@ -182,11 +176,11 @@ const verificationEmailLink = async(req,res)=>{
     }
 
     await user.save();
-
     // Remove token from Redis after verification
     // await redisClient.del(`verify:${email}`);
-
     // res.json({ message: 'Email verified successfully. You can now log in.' });
+
+     cache.del(email)
 
     res.status(StatusCodes.CREATED).json({
         success:true,
@@ -197,6 +191,7 @@ const verificationEmailLink = async(req,res)=>{
   } catch (err) {
     res.status(400).json({ message: 'Invalid or expired verification link',token });
   }
+
 }
 
 
@@ -230,7 +225,7 @@ const verifyOTP = async (req, res) => {
     await user.save();
   
     // Clear OTP from Redis
-    await redisClient.del(`otp:${email}`);
+    // await redisClient.del(`otp:${email}`);
   
   
     const accessToken =  user.createJWT()
@@ -242,9 +237,70 @@ const verifyOTP = async (req, res) => {
     });
   }catch(e){
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(e);
+  }
 
+};
+
+// Verify OTP
+const verifyEmailOTP = async (req, res) => {
+  try {
+    const { email, code } = req.body;
+
+    if (!email || !code) {
+      return res.status(401).json({ success: false, message: 'Please provide email and OTP' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid Credentials' });
+    }
+
+    const storedOTP = cache.get(email); 
+    console.log(`Email: ${email}, Stored OTP: ${storedOTP}, Provided OTP: ${code}`);
+
+    if (!storedOTP || storedOTP !== code) {
+      return res.status(401).json({ success: false, message: 'Invalid or expired OTP' });
+    }
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'OTP verified successfully',
+    });
+  } catch (e) {
+    console.error('Error:', e);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: e.message });
   }
 };
+
+
+const sentVerificationCode = async(req,res)=>{
+     try{
+      const { email } = req.body;
+
+      if(!email){
+          return res.status(StatusCodes.BAD_REQUEST).json({success: false,message:'Provide email address'})
+      }
+
+      const user = await User.findOne({email: req.body.email})
+
+      console.log(user)
+
+      if(!user){
+        return res.status(StatusCodes.BAD_REQUEST).json({success: false,message:'User with the email not found'})
+      }
+
+      await sendOTP(user);
+
+      res.status(StatusCodes.CREATED).json({
+        success:true,
+        message: 'Code sent your email successfully.',
+      });
+
+
+     }catch(e){
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(e);
+     }
+}
 
 
 
@@ -284,10 +340,45 @@ const changePassword = async (req, res) => {
 };
 
 
+const recoverPassword = async (req, res) => {
+
+  try{
+    const { email, newpassword } = req.body;
+    
+    if (!email || !newpassword) {
+      return res.status(StatusCodes.BAD_REQUEST).json({success:false,message:'Please provide email and new passwords'});
+    }
+  
+    const user = await User.findOne({email})
+
+    if (!user) {
+      return res.status(StatusCodes.BAD_REQUEST).json({success:false,message:'User with the email not found'});
+    }
+
+    user.password = newpassword; 
+
+    await user.save();
+  
+    res.status(StatusCodes.OK).json({success:true, message: 'Password changed successfully' });
+
+  }catch(e){
+
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(e);
+
+  }
+};
+
+
+
+
+
 module.exports = {
   register,
   login,
   verifyOTP,
   changePassword,
-  verificationEmailLink
+  verificationEmailLink,
+  sentVerificationCode,
+  verifyEmailOTP,
+  recoverPassword
 };

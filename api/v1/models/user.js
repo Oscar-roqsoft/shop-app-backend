@@ -11,6 +11,12 @@ const UserSchema = new mongoose.Schema({
     minlength: [3, 'Name must be at least 3 characters'],
   },
 
+  // username: {
+  //   type: String,
+  //   maxlength: [50, 'Name cannot exceed 50 characters'],
+  //   minlength: [3, 'Name must be at least 3 characters'],
+  // },
+
   email: {
 
     type: String,
@@ -39,7 +45,7 @@ const UserSchema = new mongoose.Schema({
       message: 'Role must be either customer, rider, or admin',
     },
     required: [true, 'Please provide a role'],
-    default: 'customer',
+    default: 'user',
   },
 
  
@@ -67,10 +73,8 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-
   
   // lastLogin: { type: Date, default: Date.now },
-   
 
 });
 
