@@ -8,7 +8,9 @@ const { register,login , verificationEmailLink,sentVerificationCode,verifyEmailO
 
 
 router.route('/register').post(register)
+
 router.route('/login').post(login)
+
 router.route('/verify-email').get(verificationEmailLink)
 
 router.route('/sendCode').post(sentVerificationCode)

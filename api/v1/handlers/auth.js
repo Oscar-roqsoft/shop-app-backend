@@ -13,68 +13,59 @@ const cache = require('../../../db/cache');
 const register = async(req, res,next) => {
    
   try{
-
-  const { name, email, password, role, country} = req.body;
-  // const user = await User.create({ ...req.body })
-
-  const checkUsername = await User.findOne({
-    name: req.body.name,
-  });
-
-  const checkUserEmail = await User.findOne({
-    email: req.body.email,
-  });
-
-  if (checkUsername) {
-    return res.status(401).json({ message: "Name is already in use!" });
-
-  } else if (checkUserEmail) {
-    return res.status(401).json({ message: "Email is already in use!" });
-
-  }else{
-
-    await User.create({
-     name,
-     email,
-     password,
-     role,
-     country,
-     isVerified,
-   });
-
-
-   const user = await User.findOne({
-    name: req.body.name,
-
-  });
-
-const accessToken = user.createJWT()
+    
+    const { name, email, password, role, country} = req.body;
+    // const user = await User.create({ ...req.body })
+    
+    
+    const checkUsername = await User.findOne({
+      name: req.body.name,
+    });
+    
+    const checkUserEmail = await User.findOne({
+      email: req.body.email,
+    });
   
-   const newUser = {
-     name,
-     email,
-     country,
-     isVerified,
-     role
-   }
+    if (checkUsername) {
+      return res.status(401).json({ message: "Name is already in use!" });
+      
+    } else if (checkUserEmail) {
+      return res.status(401).json({ message: "Email is already in use!" });
+      
+    }else{
+    
+      
+      await User.create({...req.body});
+      
+      
+      // console.log('good',req.body)
+    
 
-       // Send OTP
-      await sendOTP(user);
+    const user = await User.findOne({
+       name: req.body.name,
+    });
+
+    const accessToken = user.createJWT()
+      
+    const newUser = {...req.body,isVerified:user.isVerified}
+
+          // Send OTP
+    await sendOTP(user);
 
 
-    // Return null data since isVerified is false
+        // Return null data since isVerified is false
     const responseData = !req.body.isVerified
     ? {accessToken,...newUser}
     : null;
 
 
-    res.status(StatusCodes.CREATED).json({
-      success:true,
-      message: 'User created. Please verify OTP sent to your email.',
-      data: {accessToken,...newUser},
-    });
+        res.status(StatusCodes.CREATED).json({
+          success:true,
+          message: 'User created. Please verify OTP sent to your email.',
+          data: {accessToken,...newUser},
+        });
 
-  }
+    }
 
   }catch(e){
 
