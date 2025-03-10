@@ -7,17 +7,30 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const rateLimiter = require('express-rate-limit');
 const xss = require('xss-clean');
-// const homeRoutes = require("./routes/home/home");
+
+const adminRoutes = require("./api/v1/routes/admin");
 const authRoutes = require("./api/v1/routes/auth");
 
-// const authRoutes = require("./api/v1/routes/auth");
+const productRoutes = require("./api/v1/routes/product");
+const categoryRoutes = require("./api/v1/routes/category");
+const fileUploadRoutes = require("./api/v1/routes/uploadImage");
 
 const notFound = require('./middlewares/not-found')
 const errorHandlers = require('./middlewares/errors')
 const connectDB = require('./db/mongodb')
 
+const fileUpload = require('express-fileupload');
 
-const { verifyToken } = require('./middlewares/authentication')
+
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
+
+
+
 
 
 // mongoose
@@ -31,6 +44,8 @@ const { verifyToken } = require('./middlewares/authentication')
 // connectDB()
 
 app.use(bodyParser.json());
+
+app.use(fileUpload({ useTempFiles: true }));
 
 app.use(
   cors({
@@ -67,11 +82,15 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 app.use("/api/v1/", authRoutes)
+app.use("/api/v1/admin/", adminRoutes)
+
+app.use("/api/v1/category/",categoryRoutes);
+app.use("/api/v1/file/", fileUploadRoutes);
+app.use("/api/v1/product/",productRoutes);
 
 app.use(notFound);
 app.use(errorHandlers);
 
-// app.use("/auth", authRoutes);
 // app.use("/user", userRoutes);
 
 const port = process.env.PORT || 6000;

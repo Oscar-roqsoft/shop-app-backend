@@ -1,23 +1,22 @@
-// require("dotenv").config();
-// const { StatusCodes } = require('http-status-codes');
-// const  express = require('express');
+// const path = require('path');
+const { StatusCodes } = require('http-status-codes');
+// const CustomError = require('../errors');
+const cloudinary = require('cloudinary').v2;
+const fs = require('fs');
 
-// const {sendResponseData,sendResponse} = require('../responses')
+
+const uploadProductImage = async (req, res) => {
+    const result = await cloudinary.uploader.upload(
+      req.files.image.tempFilePath,
+      {
+        use_filename: true,
+        folder: 'file-upload',
+      }
+    );
+    fs.unlinkSync(req.files.image.tempFilePath);
+    return res.status(StatusCodes.OK).json({ image: { src: result.secure_url } });
+  };
   
-
-// const uploadProductImage = async (req, res) => {
-//     try {
-//         if (!req.file) {
-//             return res.status(StatusCodes.BAD_GATEWAY).json({ success: false, message: 'No file uploaded' });
-//           }
-//           res.status(StatusCodes.CREATED).json({
-//             success: true,
-//             message: 'File uploaded successfully',
-//             file: req.file
-//         });
-//       } catch (error) {
-//         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message:error });
-//       }
-// };
-
-// module.exports = uploadProductImage
+module.exports = {
+    uploadProductImage,
+};
