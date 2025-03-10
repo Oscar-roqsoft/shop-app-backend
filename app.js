@@ -10,9 +10,12 @@ const xss = require('xss-clean');
 
 const adminRoutes = require("./api/v1/routes/admin");
 const authRoutes = require("./api/v1/routes/auth");
-
 const productRoutes = require("./api/v1/routes/product");
 const categoryRoutes = require("./api/v1/routes/category");
+const cartRoutes = require("./api/v1/routes/cart");
+
+
+
 const fileUploadRoutes = require("./api/v1/routes/uploadImage");
 
 const notFound = require('./middlewares/not-found')
@@ -87,6 +90,7 @@ app.use("/api/v1/admin/", adminRoutes)
 app.use("/api/v1/category/",categoryRoutes);
 app.use("/api/v1/file/", fileUploadRoutes);
 app.use("/api/v1/product/",productRoutes);
+app.use("/api/v1/cart/",cartRoutes);
 
 app.use(notFound);
 app.use(errorHandlers);

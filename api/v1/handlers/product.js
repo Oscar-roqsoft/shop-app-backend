@@ -42,4 +42,20 @@ const createProduct = async (req, res) => {
 
 };
 
-module.exports = { createProduct };
+
+const getAllProducts = async (req, res) => {
+    try {
+      const page = Number(req.query.pageNumber) || 1; // Use query parameters for pagination
+      const limit = Number(req.query.limit) || 20;
+      const skip = (page - 1) * limit;
+  
+      const products = await Product.find().skip(skip).limit(limit);
+  
+      sendSuccessResponseData(res, 'Fetched successfully', { products });
+    } catch (error) {
+      sendUnauthenticatedErrorResponse(res, error.message);
+    }
+};
+
+
+module.exports = { createProduct ,getAllProducts};
