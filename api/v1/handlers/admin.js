@@ -27,7 +27,7 @@ const createAdmin = async () => {
     }
 };
 
-// createAdmin()
+createAdmin()
 
 const login = async(req,res)=>{
     try {
