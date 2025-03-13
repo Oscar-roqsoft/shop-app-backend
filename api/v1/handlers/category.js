@@ -34,6 +34,19 @@ const createCategory = async (req, res) => {
     // res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
     sendUnauthenticatedErrorResponse(res,error.message)
   }
+
 };
 
-module.exports = { createCategory };
+const getAllCategory = async(req,res)=>{
+    try{
+
+        const category = await Category.find()
+        sendSuccessResponseData(res,'fetched successfully', {category})
+    }catch(e){
+        sendUnauthenticatedErrorResponse(res,error.message)
+    }
+
+
+}
+
+module.exports = { createCategory,getAllCategory };

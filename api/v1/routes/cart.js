@@ -1,16 +1,18 @@
 const express = require('express')
-const { verifyToken } = require('../../../middlewares/authentication')
 
+const { verifyToken } = require('../../../middlewares/authentication')
 
 const router= express.Router()
 
 
-const { addtoCart,removeFromCart } = require('../handlers/cart')
+const { addtoCart,removeFromCart ,updateCart,getUserCart} = require('../handlers/cart')
 
 
-router.route('/add').post(verifyToken,addtoCart)
+router.route('/').get(verifyToken,getUserCart)
+router.route('/').post(verifyToken,addtoCart)
 
-router.route('/remove').post(verifyToken,removeFromCart)
+router.route('/:productId').delete(verifyToken,removeFromCart)
+router.route('/:productId').put(verifyToken,updateCart)
 
 
 // app.use(notFound)

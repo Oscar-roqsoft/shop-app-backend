@@ -13,8 +13,7 @@ const authRoutes = require("./api/v1/routes/auth");
 const productRoutes = require("./api/v1/routes/product");
 const categoryRoutes = require("./api/v1/routes/category");
 const cartRoutes = require("./api/v1/routes/cart");
-
-
+const wishlistRoutes = require("./api/v1/routes/wishlist");
 
 const fileUploadRoutes = require("./api/v1/routes/uploadImage");
 
@@ -49,6 +48,29 @@ cloudinary.config({
 app.use(bodyParser.json());
 
 app.use(fileUpload({ useTempFiles: true }));
+
+
+
+// const storage = multer.diskStorage({
+//   destination:'./upload/images',
+//   filename:(req,file,cd)=>{
+//     return cb(null,`${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+//   }
+// })
+
+
+// const upload = multer({storage:storage})
+
+// app.use('/images',express.static('upload/images'))
+
+// app.post('/uupload,',upload.single('image'),(req,res)=>{
+
+//   res.json({
+//     success:true,
+//     image_url:`http//localhost:${port}/images/${req.file.filename}`
+//   })
+// })
+
 
 app.use(
   cors({
@@ -91,6 +113,7 @@ app.use("/api/v1/category/",categoryRoutes);
 app.use("/api/v1/file/", fileUploadRoutes);
 app.use("/api/v1/product/",productRoutes);
 app.use("/api/v1/cart/",cartRoutes);
+app.use("/api/v1/wishlist/",wishlistRoutes);
 
 app.use(notFound);
 app.use(errorHandlers);
@@ -116,8 +139,6 @@ const start = async () => {
     }
   };
   
-  // ... existing code ...
-  
-  // ... existing code ...
+
 
 start();

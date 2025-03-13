@@ -5,10 +5,11 @@ const { verifyToken ,authorizePermissions} = require('../../../middlewares/authe
 const router= express.Router()
 
 
-const { createCategory } = require('../handlers/category')
+const { createCategory,getAllCategory } = require('../handlers/category')
 
 
 router.route('/create').post([verifyToken,authorizePermissions('admin')],createCategory)
+router.route('/all').get(getAllCategory)
 
 
 // app.use(notFound)
