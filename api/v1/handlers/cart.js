@@ -8,7 +8,7 @@ const Product = require('../models/product');
 
 const getUserCart = async(req,res)=>{
     try {
-        const cart = await Cart.findOne({ userId: req.user.id })
+        const cart = await Cart.findOne({ userId: req.user.userId })
           .populate('items.productId') // Populate product details
           .exec();
     
@@ -56,7 +56,7 @@ const addtoCart = async (req, res) => {
         const qty = quantity && quantity > 0 ? quantity : 1;
     
         // Find the user's cart
-        let cart = await Cart.findOne({ userId: req.user.id });
+        let cart = await Cart.findOne({ userId: req.user.userId });
     
         if (cart) {
           // Check if the product already exists in the cart
@@ -72,7 +72,7 @@ const addtoCart = async (req, res) => {
         } else {
           // No cart for the user; create a new cart
           cart = new Cart({
-            userId: req.user.id,
+            userId: req.user.userId,
             items: [{ productId, quantity: qty }]
           });
         }
@@ -112,7 +112,7 @@ const removeFromCart = async (req, res) => {
     const { productId } = req.params;
 
     // Find the user's cart
-    let cart = await Cart.findOne({ userId: req.user.id });
+    let cart = await Cart.findOne({ userId: req.user.userId });
 
     if (cart) {
       // Filter out the item to be removed
@@ -152,8 +152,11 @@ const removeFromCart = async (req, res) => {
 
 
 const updateCart = async(req,res)=>{
+
     try {
+
         const { productId } = req.params;
+
         const { quantity } = req.body;
     
         // Validate quantity
@@ -162,13 +165,15 @@ const updateCart = async(req,res)=>{
         }
     
         // Find the user's cart
-        let cart = await Cart.findOne({ userId: req.user.id });
+        let cart = await Cart.findOne({ userId: req.user.userId});
     
         if (cart) {
+
           // Find the item to update
           const itemIndex = cart.items.findIndex(item => item.productId.equals(productId));
     
           if (itemIndex > -1) {
+            
             // Update the quantity
             cart.items[itemIndex].quantity = quantity;
     
